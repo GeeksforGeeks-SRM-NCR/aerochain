@@ -4,8 +4,7 @@ import { Environment, Float } from '@react-three/drei';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import Lenis from '@studio-freight/lenis';
-import { supabase, signOut, getMyRegistration } from './services/supabaseClient';
-import { User } from '@supabase/supabase-js';
+import { signOut, getMyRegistration, validateSession } from './services/supabaseClient';
 
 import PowerCore from './components/3d/PowerCore';
 import MagneticButton from './components/MagneticButton';
@@ -25,7 +24,7 @@ const App: React.FC = () => {
     const [progress, setProgress] = useState(0);
 
     // Auth & Form State
-    const [user, setUser] = useState<User | null>(null);
+    const [user, setUser] = useState<{ id: string; email?: string } | null>(null);
     const [userRegistration, setUserRegistration] = useState<any>(null);
 
     const [isLoginOpen, setIsLoginOpen] = useState(false);
@@ -37,89 +36,27 @@ const App: React.FC = () => {
     const timelineRef = useRef<HTMLDivElement>(null);
     const timelineLineRef = useRef<HTMLDivElement>(null);
     const mainContentRef = useRef<HTMLDivElement>(null);
-    // Track when login just happened so onAuthStateChange doesn't double-fetch
-    const skipNextAuthFetch = useRef(false);
 
-    // Auth State Listener
+    // Auth State — restore session from stored token on mount
     useEffect(() => {
-        // Cast auth to any to bypass type checking for different library versions
-        const auth = supabase.auth as any;
-
-        if (auth.getSession) {
-            auth.getSession().then(({ data: { session } }: any) => {
-                handleAuthSession(session?.user ?? null);
-            });
-        } else if (auth.session) {
-            // Fallback for v1
-            const session = auth.session();
-            handleAuthSession(session?.user ?? null);
-        }
-
-        const { data } = auth.onAuthStateChange((_event: any, session: any) => {
-            handleAuthSession(session?.user ?? null);
-        });
-
-        return () => {
-            if (data && data.subscription) {
-                data.subscription.unsubscribe();
-            } else if (data && typeof data.unsubscribe === 'function') {
-                data.unsubscribe();
+        validateSession().then((restoredUser) => {
+            if (restoredUser) {
+                setUser(restoredUser);
+                getMyRegistration(restoredUser.id, restoredUser.email).then(setUserRegistration);
             }
-        };
+        });
     }, []);
 
-    const checkSessionExpiry = () => {
-        const loginTime = localStorage.getItem('aerochain_login_time');
-        if (loginTime) {
-            const twoDaysInMs = 2 * 24 * 60 * 60 * 1000;
-            if (Date.now() - parseInt(loginTime, 10) > twoDaysInMs) {
-                return true; // Expired
-            }
-        }
-        return false;
-    };
-
-    const handleAuthSession = async (currentUser: User | null) => {
-        if (currentUser) {
-            if (checkSessionExpiry()) {
-                await handleLogout();
-                return;
-            }
-            setUser(currentUser);
-            // Skip fetch if handleLoginSuccess already did it
-            if (skipNextAuthFetch.current) {
-                skipNextAuthFetch.current = false;
-                return;
-            }
-            const existingData = await getMyRegistration(currentUser.id, currentUser.email);
-            setUserRegistration(existingData);
-        } else {
-            setUser(null);
-            setUserRegistration(null);
-        }
-    };
-
-    const handleLoginSuccess = async (loggedInUser: User) => {
-        // Stamp login time
-        localStorage.setItem('aerochain_login_time', Date.now().toString());
-
-        // Flag so the subsequent onAuthStateChange event skips the redundant fetch
-        skipNextAuthFetch.current = true;
-
+    const handleLoginSuccess = async (loggedInUser: { id: string; email?: string }) => {
         setUser(loggedInUser);
         setIsLoginOpen(false);
-
-        // Fetch latest data (single fetch — onAuthStateChange will be skipped)
         const existingData = await getMyRegistration(loggedInUser.id, loggedInUser.email);
         setUserRegistration(existingData);
-
-        // Open form automatically after login
         setIsRegOpen(true);
     };
 
     const handleLogout = async () => {
         await signOut();
-        localStorage.removeItem('aerochain_login_time');
         setUser(null);
         setUserRegistration(null);
         setIsRegOpen(false);

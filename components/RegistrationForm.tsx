@@ -1,13 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { X, Plus, Trash2, CheckCircle, AlertCircle, Loader2, User, BookOpen, Lock } from 'lucide-react';
 import { submitRegistration } from '../services/supabaseClient';
-import { User as SupabaseUser } from '@supabase/supabase-js';
 
 interface RegistrationFormProps {
   isOpen: boolean;
   onClose: () => void;
   onAdminRequest: () => void;
-  user: SupabaseUser;
+  user: { id: string; email?: string };
   initialData?: any | null;
 }
 
