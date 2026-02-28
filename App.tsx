@@ -5,8 +5,7 @@ import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import Lenis from '@studio-freight/lenis';
 import { supabase, signOut, getMyRegistration } from './services/supabaseClient';
-// Removed explicit User import to avoid version conflicts
-// import { User } from '@supabase/supabase-js';
+import { User } from '@supabase/supabase-js';
 
 import PowerCore from './components/3d/PowerCore';
 import MagneticButton from './components/MagneticButton';
@@ -26,8 +25,7 @@ const App: React.FC = () => {
     const [progress, setProgress] = useState(0);
 
     // Auth & Form State
-    // Use any for user to support different supabase-js versions
-    const [user, setUser] = useState<any | null>(null);
+    const [user, setUser] = useState<User | null>(null);
     const [userRegistration, setUserRegistration] = useState<any>(null);
 
     const [isLoginOpen, setIsLoginOpen] = useState(false);
@@ -39,6 +37,8 @@ const App: React.FC = () => {
     const timelineRef = useRef<HTMLDivElement>(null);
     const timelineLineRef = useRef<HTMLDivElement>(null);
     const mainContentRef = useRef<HTMLDivElement>(null);
+    // Track when login just happened so onAuthStateChange doesn't double-fetch
+    const skipNextAuthFetch = useRef(false);
 
     // Auth State Listener
     useEffect(() => {
@@ -79,14 +79,18 @@ const App: React.FC = () => {
         return false;
     };
 
-    const handleAuthSession = async (currentUser: any | null) => {
+    const handleAuthSession = async (currentUser: User | null) => {
         if (currentUser) {
             if (checkSessionExpiry()) {
                 await handleLogout();
                 return;
             }
             setUser(currentUser);
-            // Check for existing registration immediately
+            // Skip fetch if handleLoginSuccess already did it
+            if (skipNextAuthFetch.current) {
+                skipNextAuthFetch.current = false;
+                return;
+            }
             const existingData = await getMyRegistration(currentUser.id, currentUser.email);
             setUserRegistration(existingData);
         } else {
@@ -95,14 +99,17 @@ const App: React.FC = () => {
         }
     };
 
-    const handleLoginSuccess = async (loggedInUser: any) => {
+    const handleLoginSuccess = async (loggedInUser: User) => {
         // Stamp login time
         localStorage.setItem('aerochain_login_time', Date.now().toString());
+
+        // Flag so the subsequent onAuthStateChange event skips the redundant fetch
+        skipNextAuthFetch.current = true;
 
         setUser(loggedInUser);
         setIsLoginOpen(false);
 
-        // Fetch latest data
+        // Fetch latest data (single fetch — onAuthStateChange will be skipped)
         const existingData = await getMyRegistration(loggedInUser.id, loggedInUser.email);
         setUserRegistration(existingData);
 
@@ -149,9 +156,8 @@ const App: React.FC = () => {
         lenis.on('scroll', ScrollTrigger.update);
 
         // Sync GSAP's ticker with Lenis's RAF to ensure smooth animation
-        gsap.ticker.add((time) => {
-            lenis.raf(time * 1000);
-        });
+        const lenisRafFn = (time: number) => lenis.raf(time * 1000);
+        gsap.ticker.add(lenisRafFn);
 
         // Turn off GSAP lag smoothing to prevent stutter during heavy calculation
         gsap.ticker.lagSmoothing(0);
@@ -257,7 +263,7 @@ const App: React.FC = () => {
 
         return () => {
             // Clean up
-            gsap.ticker.remove(lenis.raf);
+            gsap.ticker.remove(lenisRafFn);
             lenis.destroy();
             ScrollTrigger.getAll().forEach(t => t.kill());
         };

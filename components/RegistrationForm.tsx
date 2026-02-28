@@ -59,7 +59,7 @@ const RegistrationForm: React.FC<RegistrationFormProps> = ({ isOpen, onClose, on
   useEffect(() => {
     if (initialData) {
       // Ensure we have at least 2 members even if initialData has fewer
-      const preppedMembers = initialData.members || [];
+      const preppedMembers = [...(initialData.members || [])];
       while (preppedMembers.length < 2) {
         preppedMembers.push({ name: '', role: 'Developer', email: '', semester: '', regNo: '', phone: '', section: '', department: '', altEmail: '' });
       }
