@@ -23,6 +23,13 @@ gsap.registerPlugin(ScrollTrigger);
 const App: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [progress, setProgress] = useState(0);
+    const [isFirstVisit, setIsFirstVisit] = useState(() => {
+        if (typeof window !== 'undefined') {
+            return !sessionStorage.getItem('aerochain_visited');
+        }
+        return false;
+    });
+    const [isFadingOut, setIsFadingOut] = useState(false);
 
     // Auth & Form State
     const [user, setUser] = useState<User | null>(null);
@@ -127,11 +134,20 @@ const App: React.FC = () => {
 
     // Preloader Logic
     useEffect(() => {
+        if (isFirstVisit) {
+            sessionStorage.setItem('aerochain_visited', 'true');
+            // Wait for video to end
+            return;
+        }
+
         const timer = setInterval(() => {
             setProgress((prev) => {
                 if (prev >= 100) {
                     clearInterval(timer);
-                    setTimeout(() => setLoading(false), 1200);
+                    setTimeout(() => {
+                        setIsFadingOut(true);
+                        setTimeout(() => setLoading(false), 500);
+                    }, 1200);
                     return 100;
                 }
                 const increment = Math.random() * (prev > 90 ? 2 : prev > 60 ? 5 : 8);
@@ -139,7 +155,12 @@ const App: React.FC = () => {
             });
         }, 50);
         return () => clearInterval(timer);
-    }, []);
+    }, [isFirstVisit]);
+
+    const handleVideoEnd = () => {
+        setIsFadingOut(true);
+        setTimeout(() => setLoading(false), 500);
+    };
 
     // Smooth Scroll & Animations
     useEffect(() => {
@@ -231,6 +252,7 @@ const App: React.FC = () => {
         });
 
         // Bento Grid Animation
+        /*
         gsap.fromTo(".bento-card",
             { y: 100, opacity: 0, scale: 0.9 },
             {
@@ -246,6 +268,7 @@ const App: React.FC = () => {
                 }
             }
         );
+        */
 
         // Floating UI Elements
         gsap.to(".floating-ui", {
@@ -271,22 +294,43 @@ const App: React.FC = () => {
 
     if (loading) {
         return (
-            <div className="fixed inset-0 bg-[#050505] z-50 flex items-center justify-center flex-col">
-                <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20"></div>
-                <div className="text-6xl font-black mb-8 relative">
-                    <span className="text-white opacity-20 blur-sm absolute top-0 left-0 animate-pulse">AEROCHAIN</span>
-                    <span className="text-[#00F0FF] relative z-10">AEROCHAIN</span>
-                </div>
-                <div className="w-80 h-1 bg-[#1A1A1A] overflow-hidden mb-4 relative rounded-full">
-                    <div className="h-full bg-[#00F0FF] shadow-[0_0_20px_#00F0FF]" style={{ width: `${progress}%`, transition: 'width 0.1s linear' }}></div>
-                </div>
-                <div className="font-mono text-[#00F0FF] text-xs tracking-widest flex items-center gap-2 uppercase">
-                    {progress < 100 ? (
-                        <>Loading Assets <span className="animate-spin">/</span> Core {Math.floor(progress)}%</>
-                    ) : (
-                        <span className="animate-pulse">SYSTEM READY_</span>
-                    )}
-                </div>
+            <div className={`fixed inset-0 bg-[#050505] z-50 flex items-center justify-center flex-col transition-opacity duration-500 ease-in-out ${isFadingOut ? 'opacity-0' : 'opacity-100'}`}>
+                {isFirstVisit ? (
+                    <video
+                        src="/hmm.mp4"
+                        autoPlay
+                        muted
+                        playsInline
+                        onEnded={handleVideoEnd}
+                        onError={handleVideoEnd}
+                        onAbort={handleVideoEnd}
+                        onLoadedData={() => {
+                            // Safety timeout in case autoplay is blocked or onEnded never fires
+                            setTimeout(() => {
+                                handleVideoEnd();
+                            }, 15000);
+                        }}
+                        className="w-full h-full object-cover"
+                    />
+                ) : (
+                    <>
+                        <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20"></div>
+                        <div className="text-6xl font-black mb-8 relative">
+                            <span className="text-white opacity-20 blur-sm absolute top-0 left-0 animate-pulse">AEROCHAIN</span>
+                            <span className="text-[#00F0FF] relative z-10">AEROCHAIN</span>
+                        </div>
+                        <div className="w-80 h-1 bg-[#1A1A1A] overflow-hidden mb-4 relative rounded-full">
+                            <div className="h-full bg-[#00F0FF] shadow-[0_0_20px_#00F0FF]" style={{ width: `${progress}%`, transition: 'width 0.1s linear' }}></div>
+                        </div>
+                        <div className="font-mono text-[#00F0FF] text-xs tracking-widest flex items-center gap-2 uppercase">
+                            {progress < 100 ? (
+                                <>Loading Assets <span className="animate-spin">/</span> Core {Math.floor(progress)}%</>
+                            ) : (
+                                <span className="animate-pulse">SYSTEM READY_</span>
+                            )}
+                        </div>
+                    </>
+                )}
             </div>
         );
     }
@@ -362,7 +406,7 @@ const App: React.FC = () => {
 
                         <h1 className="hero-glitch text-7xl md:text-9xl font-black uppercase tracking-tighter leading-[0.85] relative">
                             <div className="glitch-wrapper">
-                                <span className="block text-transparent stroke-white" style={{ WebkitTextStroke: '1px rgba(255,255,255,0.3)' }}>AERO</span>
+                                <span className="block text-white/90 stroke-white/50" style={{ WebkitTextStroke: '1px rgba(255,255,255,0.6)' }}>AERO</span>
                                 <span className="glitch-text block text-[#00F0FF] filter drop-shadow-[0_0_15px_rgba(0,240,255,0.5)]" data-text="CHAIN">CHAIN</span>
                             </div>
                         </h1>
@@ -411,6 +455,7 @@ const App: React.FC = () => {
                 </section>
 
                 {/* Bento Grid */}
+                {/*
                 <section id="bento-grid" className="py-20 px-6 md:px-12 max-w-7xl mx-auto">
                     <div className="flex items-end justify-between mb-12 border-b border-white/10 pb-4">
                         <h2 className="text-4xl font-bold flex items-center gap-3">
@@ -450,6 +495,7 @@ const App: React.FC = () => {
                         ))}
                     </div>
                 </section>
+                */}
 
                 {/* Timeline */}
                 <section ref={timelineRef} className="py-32 px-6 md:px-12 relative max-w-5xl mx-auto overflow-hidden min-h-screen flex flex-col justify-center">
