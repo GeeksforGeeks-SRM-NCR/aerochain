@@ -16,7 +16,7 @@ import AdminDashboard from './components/AdminDashboard';
 import LoginModal from './components/LoginModal';
 
 import { BENTO_ITEMS, TIMELINE_EVENTS } from './constants';
-import { ChevronDown, MapPin, Users, Trophy, Cpu, Terminal, ShieldAlert, LogIn, AlertOctagon, LogOut } from 'lucide-react';
+import { ChevronDown, MapPin, Users, Trophy, Cpu, Terminal, LogIn, AlertOctagon, LogOut } from 'lucide-react';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -44,6 +44,7 @@ const App: React.FC = () => {
     const timelineRef = useRef<HTMLDivElement>(null);
     const timelineLineRef = useRef<HTMLDivElement>(null);
     const mainContentRef = useRef<HTMLDivElement>(null);
+    const lenisRef = useRef<Lenis | null>(null);
     // Track when login just happened so onAuthStateChange doesn't double-fetch
     const skipNextAuthFetch = useRef(false);
 
@@ -172,6 +173,7 @@ const App: React.FC = () => {
             easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
             touchMultiplier: 2,
         });
+        lenisRef.current = lenis;
 
         // Tell ScrollTrigger to update whenever Lenis scrolls
         lenis.on('scroll', ScrollTrigger.update);
@@ -288,9 +290,28 @@ const App: React.FC = () => {
             // Clean up
             gsap.ticker.remove(lenisRafFn);
             lenis.destroy();
+            lenisRef.current = null;
             ScrollTrigger.getAll().forEach(t => t.kill());
         };
     }, [loading, isAdminMode]);
+
+    // Centralized Scroll Lockdown
+    useEffect(() => {
+        const isSomeModalOpen = isLoginOpen || isRegOpen || isAdminLoginOpen;
+
+        if (isSomeModalOpen) {
+            document.body.style.overflow = 'hidden';
+            lenisRef.current?.stop();
+        } else {
+            document.body.style.overflow = 'unset';
+            lenisRef.current?.start();
+        }
+
+        return () => {
+            document.body.style.overflow = 'unset';
+            lenisRef.current?.start();
+        };
+    }, [isLoginOpen, isRegOpen, isAdminLoginOpen]);
 
     if (loading) {
         return (
@@ -439,10 +460,6 @@ const App: React.FC = () => {
                 <section className="min-h-[60vh] flex items-center justify-center px-6 md:px-20 py-20 relative bg-gradient-to-b from-transparent to-black/80">
                     <div className="absolute top-0 w-full h-px bg-gradient-to-r from-transparent via-[#00F0FF]/20 to-transparent"></div>
                     <div className="max-w-5xl text-center space-y-6">
-                        <div className="inline-block p-3 border border-red-500/30 rounded bg-red-500/5 text-red-500 font-mono text-xs tracking-widest mb-4">
-                            <ShieldAlert className="inline w-4 h-4 mr-2" />
-                            ERROR: TRACEABILITY GAP DETECTED
-                        </div>
                         <h2 className="text-3xl md:text-6xl font-bold leading-tight text-white">
                             <TextReveal className="opacity-60">The supply chain is fragmented.</TextReveal>
                             <span className="block h-2"></span>

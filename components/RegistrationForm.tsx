@@ -89,17 +89,6 @@ const RegistrationForm: React.FC<RegistrationFormProps> = ({ isOpen, onClose, on
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialData, isOpen]); // removed 'user' to persist data on re-renders
 
-  // Lock body scroll when modal is open
-  useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = 'unset';
-    }
-    return () => {
-      document.body.style.overflow = 'unset';
-    };
-  }, [isOpen]);
 
 
 

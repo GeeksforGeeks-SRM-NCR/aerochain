@@ -29,6 +29,18 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
     loadData();
   }, []);
 
+  // Lock body scroll when modal is open
+  useEffect(() => {
+    if (isODModalOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [isODModalOpen]);
+
   // Remove problematic GSAP animation for cards to allow CSS animations to handle initial load smoothly
 
   const handleRefresh = async () => {
