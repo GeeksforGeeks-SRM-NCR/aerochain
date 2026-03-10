@@ -302,6 +302,14 @@ const App: React.FC = () => {
                         muted
                         playsInline
                         onEnded={handleVideoEnd}
+                        onError={handleVideoEnd}
+                        onAbort={handleVideoEnd}
+                        onLoadedData={() => {
+                            // Safety timeout in case autoplay is blocked or onEnded never fires
+                            setTimeout(() => {
+                                handleVideoEnd();
+                            }, 15000);
+                        }}
                         className="w-full h-full object-cover"
                     />
                 ) : (
