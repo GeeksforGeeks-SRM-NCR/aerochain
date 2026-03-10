@@ -41,8 +41,6 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
     };
   }, [isODModalOpen]);
 
-  // Remove problematic GSAP animation for cards to allow CSS animations to handle initial load smoothly
-
   const handleRefresh = async () => {
     setIsRefreshing(true);
     // Animate the icon specifically
