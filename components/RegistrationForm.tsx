@@ -245,7 +245,7 @@ const RegistrationForm: React.FC<RegistrationFormProps> = ({ isOpen, onClose, on
                       value={formData.teamName}
                       onChange={e => setFormData({ ...formData, teamName: e.target.value })}
                       className="w-full bg-white/5 border border-white/10 rounded p-3 text-white focus:border-[#00F0FF] focus:outline-none transition-colors"
-                      placeholder="e.g. Null Pointers"
+                      placeholder="Enter Your Team Name"
                     />
                   </div>
                 </div>
@@ -305,7 +305,7 @@ const RegistrationForm: React.FC<RegistrationFormProps> = ({ isOpen, onClose, on
                       value={formData.leadPhone}
                       onChange={e => setFormData({ ...formData, leadPhone: e.target.value })}
                       className="w-full bg-white/5 border border-white/10 rounded p-3 text-white focus:border-[#00F0FF] focus:outline-none transition-colors font-mono"
-                      placeholder="10 digits"
+                      placeholder="Enter Phone No."
                     />
                   </div>
                   <div className="space-y-2">
@@ -350,14 +350,18 @@ const RegistrationForm: React.FC<RegistrationFormProps> = ({ isOpen, onClose, on
                       <label className="text-xs uppercase tracking-widest text-gray-400 flex items-center gap-2">
                         <BookOpen className="w-3 h-3" /> Semester
                       </label>
-                      <input
+                      <select
                         required
-                        type="text"
                         value={formData.leadSemester}
                         onChange={e => setFormData({ ...formData, leadSemester: e.target.value })}
-                        className="w-full bg-white/5 border border-white/10 rounded p-3 text-white focus:border-[#00F0FF] focus:outline-none transition-colors"
-                        placeholder="e.g. 4th"
-                      />
+                        className="w-full bg-white/5 border border-white/10 rounded p-3 text-white focus:border-[#00F0FF] focus:outline-none transition-colors [&>option]:bg-black custom-scrollbar appearance-none"
+                        style={{ backgroundImage: 'url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'white\' stroke-width=\'2\' stroke-linecap=\'round\' stroke-linejoin=\'round\'%3e%3cpolyline points=\'6 9 12 15 18 9\'/%3e%3c/svg%3e")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right 1rem center', backgroundSize: '1em' }}
+                      >
+                        <option value="" disabled>Select Semester</option>
+                        {['1st', '2nd', '3rd', '4th', '5th', '6th', '7th', '8th'].map(sem => (
+                          <option key={sem} value={sem}>{sem}</option>
+                        ))}
+                      </select>
                     </div>
                   </div>
                   <div className="space-y-2 md:col-span-2">
@@ -370,7 +374,7 @@ const RegistrationForm: React.FC<RegistrationFormProps> = ({ isOpen, onClose, on
                       value={formData.leadAltEmail}
                       onChange={e => setFormData({ ...formData, leadAltEmail: e.target.value })}
                       className="w-full bg-white/5 border border-white/10 rounded p-3 text-white focus:border-[#00F0FF] focus:outline-none transition-colors"
-                      placeholder="alternate@example.com"
+                      placeholder="Enter your Personal Email"
                     />
                   </div>
                 </div>
@@ -428,7 +432,7 @@ const RegistrationForm: React.FC<RegistrationFormProps> = ({ isOpen, onClose, on
                           value={member.email}
                           onChange={e => handleMemberChange(idx, 'email', e.target.value)}
                           className="w-full bg-transparent border-b border-white/20 pb-1 text-sm focus:border-[#00F0FF] outline-none text-white placeholder-white/20"
-                          placeholder="email@example.com"
+                          placeholder="Enter Your Official Mail"
                         />
                       </div>
                       <div className="space-y-1">
@@ -452,7 +456,7 @@ const RegistrationForm: React.FC<RegistrationFormProps> = ({ isOpen, onClose, on
                           value={member.phone}
                           onChange={e => handleMemberChange(idx, 'phone', e.target.value)}
                           className="w-full bg-transparent border-b border-white/20 pb-1 text-sm focus:border-[#00F0FF] outline-none text-white placeholder-white/20 font-mono"
-                          placeholder="10 digits"
+                          placeholder="Enter Phone No."
                         />
                       </div>
                       <div className="space-y-1">
@@ -491,14 +495,18 @@ const RegistrationForm: React.FC<RegistrationFormProps> = ({ isOpen, onClose, on
                         </div>
                         <div className="space-y-1">
                           <label className="text-[10px] uppercase text-gray-500">Semester</label>
-                          <input
+                          <select
                             required
-                            type="text"
                             value={member.semester}
                             onChange={e => handleMemberChange(idx, 'semester', e.target.value)}
-                            className="w-full bg-transparent border-b border-white/20 pb-1 text-sm focus:border-[#00F0FF] outline-none text-white placeholder-white/20"
-                            placeholder="e.g. 2nd"
-                          />
+                            className="w-full bg-transparent border-b border-white/20 pb-1 text-sm focus:border-[#00F0FF] outline-none text-gray-300 [&>option]:bg-black appearance-none"
+                            style={{ backgroundImage: 'url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'white\' stroke-width=\'2\' stroke-linecap=\'round\' stroke-linejoin=\'round\'%3e%3cpolyline points=\'6 9 12 15 18 9\'/%3e%3c/svg%3e")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right center', backgroundSize: '1em' }}
+                          >
+                            <option value="" disabled>Select</option>
+                            {['1st', '2nd', '3rd', '4th', '5th', '6th', '7th', '8th'].map(sem => (
+                              <option key={sem} value={sem}>{sem}</option>
+                            ))}
+                          </select>
                         </div>
                       </div>
                       <div className="md:col-span-2 space-y-1">
@@ -509,7 +517,7 @@ const RegistrationForm: React.FC<RegistrationFormProps> = ({ isOpen, onClose, on
                           value={member.altEmail}
                           onChange={e => handleMemberChange(idx, 'altEmail', e.target.value)}
                           className="w-full bg-transparent border-b border-white/20 pb-1 text-sm focus:border-[#00F0FF] outline-none text-white placeholder-white/20"
-                          placeholder="alternate@example.com"
+                          placeholder="Enter your Personal Email"
                         />
                       </div>
                     </div>

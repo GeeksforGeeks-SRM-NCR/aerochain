@@ -549,10 +549,20 @@ const App: React.FC = () => {
                             <span className="block text-[#00F0FF] glitch-text" data-text="PARTS">PARTS</span>
                         </h2>
 
-                        <div className="flex flex-col md:flex-row gap-6 justify-center items-center pt-8">
-                            <MagneticButton onClick={() => user ? setIsRegOpen(true) : setIsLoginOpen(true)} className="min-w-[200px]">
-                                {user ? (userRegistration ? 'UPDATE DATA' : 'START SEQUENCE') : 'LOGIN TO ACCESS'}
-                            </MagneticButton>
+                        <div className="flex flex-col gap-6 items-center pt-8">
+                            <div className="flex flex-col items-center gap-4">
+                                <MagneticButton onClick={() => user ? setIsRegOpen(true) : setIsLoginOpen(true)} className="min-w-[200px]">
+                                    {user ? (userRegistration ? 'UPDATE DATA' : 'START SEQUENCE') : 'LOGIN TO ACCESS'}
+                                </MagneticButton>
+                                {user && (
+                                    <button
+                                        onClick={handleLogout}
+                                        className="text-xs md:text-sm font-mono text-red-600 hover:text-white transition-all duration-300 tracking-[0.2em] uppercase drop-shadow-[0_0_8px_rgba(239,68,68,0.5)] hover:drop-shadow-[0_0_15px_rgba(239,68,68,1)] hover:scale-105 active:scale-95"
+                                    >
+                                        [ LOGOUT_PROTOCOL ]
+                                    </button>
+                                )}
+                            </div>
                         </div>
                     </div>
                 </section>
